@@ -1,5 +1,5 @@
 {
-  "name": "safex-wallet-rpc-client",
+  "name": "safex-payments-module",
   "version": "0.0.1",
   "description": "Module for communication with safex-wallet-rpc.",
   "main": "index.js",
