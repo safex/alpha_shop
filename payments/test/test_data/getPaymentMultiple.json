@@ -1,0 +1,36 @@
+{
+  "id": 0,
+  "jsonrpc": "2.0",
+  "result": {
+    "payments": [
+      {
+        "address": "SFXtzWd5wWCRhgUEU4FVJjBkNS9sarNpbexP6YfZgDYv3bcSVwCZtm9PWnpkoRiifC3uMQJS9ihFmNTbUXr2eWgY7LUMiPBHFgq",
+        "amount": 500000000000,
+        "block_height": 41104,
+        "payment_id": "52cf9717af42a7002a40e9ed09c383248fce78da9c6652fc9f28a5ddac9c0069",
+        "subaddr_index": {
+          "major": 0,
+          "minor": 0
+        },
+        "token_amount": 0,
+        "token_transaction": false,
+        "tx_hash": "f387b9de42801795061113e072cc9be2c41af3f88141588b432c9473ab70617f",
+        "unlock_time": 0
+      },
+      {
+        "address": "SFXtzWd5wWCRhgUEU4FVJjBkNS9sarNpbexP6YfZgDYv3bcSVwCZtm9PWnpkoRiifC3uMQJS9ihFmNTbUXr2eWgY7LUMiPBHFgq",
+        "amount": 250000000000,
+        "block_height": 41104,
+        "payment_id": "52cf9717af42a7002a40e9ed09c383248fce78da9c6652fc9f28a5ddac9c0069",
+        "subaddr_index": {
+          "major": 0,
+          "minor": 0
+        },
+        "token_amount": 0,
+        "token_transaction": false,
+        "tx_hash": "3db35a20cdbc215af901087258a7f14d361731ace99d5f927e89fdf87b96c8a2",
+        "unlock_time": 0
+      }
+    ]
+  }
+}
