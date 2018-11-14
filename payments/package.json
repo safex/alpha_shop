@@ -4,8 +4,7 @@
   "description": "Module for communication with safex-wallet-rpc.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "start_rest" ; 
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",

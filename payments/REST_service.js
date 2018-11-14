@@ -9,7 +9,7 @@ const https = require("https");
 const fs = require("fs");
 const helmet = require("helmet");
 
-const config = require('config.json');
+const config = require('./config');
 
 const options = {
     key: fs.readFileSync("./certs/host1.key"),
