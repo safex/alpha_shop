@@ -28,5 +28,13 @@ function query(queryString, callback) {
 
 if(!dbExsits) {
     // Recreate DB from scratch
+    let createLedgerTableQuery = 'CREATE TABLE payments ( paymentId TEXT PRIMARY KEY, block_height INTEGER, total_sum UNSIGNED BIG INT)';
+    query(createLedgerTableQuery, (err, rows) => {
+        if(err) {
+            console.log("DBError: " + JSON.stringify(err));
+            return;
+        }
+
+    });
 
 }

@@ -172,4 +172,5 @@ app.use(function(req, res){
     res.json({ error: true, error_msg : 'Not found', timestamp: new Date() });
 });
 
+app.listen(port);
 https.createServer(options, app).listen(port+1);
