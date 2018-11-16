@@ -47,19 +47,12 @@ var lastBlockHeightScanned = 0;
 let sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
 
 async function addPaymentId(paymentId) {
-    if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
-        ledger.set(paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
-        resolve(true);
-    }
-    reject(false);
+    ledger.set(paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
 }
 
 async function removePaymentId(paymentId) {
-    if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
+
         ledger.delete(paymentId);
-        resolve(true);
-    }
-    reject(false);
 }
 
 async function isWatchingForPID(paymentId) {
@@ -73,9 +66,9 @@ async function updateLedger(payments) {
     let process = (payment) => {
         // Check if tx exists already recorded in our ledger and process it if its not.
         payment.txs.forEach((tx) => {
-            if(!ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)){
+            if(ledger.has(payment.paymentId) && !ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)){
                 ledger.get(payment.paymentId).total_amount += tx.amount;
-                ledger.get(payment.paymentId).txs.push(tx.tx_hash);
+                ledger.get(payment.paymentId).tx_hashes.push(tx.tx_hash);
                 if(tx.block_height > ledger.get(payment.paymentId).block_height) {
                     ledger.get(payment.paymentId).block_height = tx.block_height;
                 }
@@ -84,7 +77,7 @@ async function updateLedger(payments) {
     };
 
     if(payments instanceof Array){
-        payments.forEach(process(payment));
+        payments.forEach(process);
     }
     else {
         process(payments);
@@ -95,12 +88,13 @@ async function listenForPayments() {
     // Get payment info from node
     console.log("=====================================================================================");
     console.log(JSON.stringify([...ledger]));
-    console.log(JSON.stringify(lastBlockHeightScanned));
+    console.log(lastBlockHeightScanned);
     console.log("=====================================================================================");
 
-    sfxPayments.getLastBlockHeight().then((height)=>{
+    sfxPayments.nodeRpc.getLastBlockHeight().then((height)=>{
+        height = height.result.count;
         if(height > lastBlockHeightScanned) {
-            sfxPayments.getPaymentStatusBulk(Object.keys(ledger.keys()), lastBlockHeightScanned)
+            sfxPayments.getPaymentStatusBulk([...ledger.keys()], lastBlockHeightScanned)
                 .then((payments) => {
                     updateLedger(payments);
                 });

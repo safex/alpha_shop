@@ -25,5 +25,6 @@
     "nsp": "^3.2.1",
     "request": "^2.88.0",
     "sqlite3": "^4.0.4",
+    "safex-nodejs-libwallet": "https://github.com/safex/safex-nodejs-libwallet.git"
   }
 }

@@ -29,7 +29,7 @@
 const request = require('request');
 const colors = require('colors');
 
-let debugRPCCall = false;
+let debugRPCCall = true;
 
 async function executeMethod(rpcEndpoint, methodName, params) {
     return new Promise(function (resolve, reject) {
