@@ -8,3 +8,5 @@ utils.summarizeByPamentId(test_data).then((sums) => {
 }).catch((err) => {
     console.log(JSON.stringify(err));
 });
+
+var listenHandle = setInterval(utils.listenForPayments, )

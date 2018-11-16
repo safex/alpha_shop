@@ -33,9 +33,6 @@ async function summarizeByPamentId(payments) {
 // Idea is to ping periodically wallet to see if there was any txs with targeted paymentIds.
 // update ledger and keep going, so external element can be freed of book keeping duties.git st
 
-// Set of paymentIds which should be recorded in legder.
-let paymentIdsRecorded = new Set;
-
 // Saving next information
 //
 // paymentId -> {
@@ -49,17 +46,17 @@ let ledger = new Map;
 var lastBlockHeightScanned = 0;
 let sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
 
-async function addPIDToWatch(paymentId) {
+async function addPaymentId(paymentId) {
     if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
-        paymentIdsRecorded.add(paymentId);
+        ledger.set(paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
         resolve(true);
     }
     reject(false);
 }
 
-async function removePIDFromWatch(paymentId) {
+async function removePaymentId(paymentId) {
     if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
-        paymentIdsRecorded.delete(paymentId);
+        ledger.delete(paymentId);
         resolve(true);
     }
     reject(false);
@@ -67,17 +64,13 @@ async function removePIDFromWatch(paymentId) {
 
 async function isWatchingForPID(paymentId) {
     if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
-        resolve(paymentIdsRecorded.has(paymentId));
+        resolve(ledger.has(paymentId));
     }
     reject(false);
 }
 
 async function updateLedger(payments) {
     let process = (payment) => {
-        if(ledger.has(payment.paymentId)) {
-          ledger.set(payment.paymentId, {total_sum: 0, block_height: 0, tx_hashes: []});
-        }
-
         // Check if tx exists already recorded in our ledger and process it if its not.
         payment.txs.forEach((tx) => {
             if(!ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)){
@@ -98,34 +91,30 @@ async function updateLedger(payments) {
     }
 }
 
-async function parseTxHashes(tx_hashes) {
-    var returnVal = '';
-    tx_hashes.forEach((tx)=> {
-       returnVal += tx;
-       returnVal += "#";
-    });
-    return returnVal;
-}
-
-async function getTxHashes(txString) {
-    return txString.split('#');
-}
-
 async function listenForPayments() {
     // Get payment info from node
-    sfxPayments.getPaymentStatusBulk([...paymentIdsRecorded], lastBlockHeightScanned)
-    .then((payments) => {
-        updateLedger(payments);
-    });
+    console.log("=====================================================================================");
+    console.log(JSON.stringify([...ledger]));
+    console.log(JSON.stringify(lastBlockHeightScanned));
+    console.log("=====================================================================================");
 
     sfxPayments.getLastBlockHeight().then((height)=>{
-        // Get new blockheight -5 to be sure that there is no block missed.
-        lastBlockHeightScanned = height - 5;
+        if(height > lastBlockHeightScanned) {
+            sfxPayments.getPaymentStatusBulk(Object.keys(ledger.keys()), lastBlockHeightScanned)
+                .then((payments) => {
+                    updateLedger(payments);
+                });
+            lastBlockHeightScanned = height;
+        }
     });
 
 
 }
 
 module.exports = {
-    summarizeByPamentId : summarizeByPamentId
+    summarizeByPamentId : summarizeByPamentId,
+    addPaymentId : addPaymentId,
+    removePaymentId : removePaymentId,
+    isWatchingForPID : isWatchingForPID,
+    listenForPayments : listenForPayments
 };
