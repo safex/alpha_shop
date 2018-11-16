@@ -34,8 +34,9 @@ utils.listenForPayments();
 
 var listenHandle = setInterval(utils.listenForPayments, 120000);
 
-console.log("Creating wallet and txs".yellow);
+/*
 
+console.log("Creating wallet and txs".yellow);
 // Open wallet and create bunch of transactions to see whats happening
 safex.openWallet(args).then((w) => {
     console.log("-------------------");
@@ -160,4 +161,4 @@ safex.openWallet(args).then((w) => {
 
 });
 
-
+*/

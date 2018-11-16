@@ -1,6 +1,12 @@
 
+// Initial testing suggest that this could is working correctly.
+// @todo test little bit more
+// @todo introduce caching to DB using SQLite3
+
+
 let sfx_pay = require('./index');
 const config = require('./config.json');
+const db_query = require('./src/sqliteWrapper');
 
 // Summarize payment data to be more friendly to payments checking.
 async function summarizeByPamentId(payments) {
