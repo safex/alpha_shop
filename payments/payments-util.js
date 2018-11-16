@@ -41,7 +41,7 @@ async function summarizeByPamentId(payments) {
 //                  tx_hashes[]  => Tx hashes associated with paymentId.
 //              }
 //
-let ledger = new Map;
+var ledger = new Map;
 
 var lastBlockHeightScanned = 0;
 let sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);

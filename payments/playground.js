@@ -26,8 +26,12 @@ var p2 = "a1b2c3d4e5f61236";
 var p3 = "a1b2c3d4e5f61237";
 
 console.log("Listening for payments.".yellow);
-
+utils.addPaymentId(p1);
+utils.addPaymentId(p2);
+utils.addPaymentId(p3);
 utils.listenForPayments();
+
+
 var listenHandle = setInterval(utils.listenForPayments, 120000);
 
 console.log("Creating wallet and txs".yellow);
