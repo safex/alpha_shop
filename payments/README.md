@@ -19,12 +19,6 @@ In order to run test successfully, you will need to have test wallet for which t
 Safex payments module can be used as REST service and/or nodeJS module.
 -   node REST_service.js
 
-# Current steps
-- Write tests and be thorough
-- Specify API with easy use on FE part
-- Implement SSL/TLS on REST service.
-
 https://itnext.io/node-express-letsencrypt-generate-a-free-ssl-certificate-and-run-an-https-server-in-5-minutes-a730fbe528ca
-confirmations.
 write extensive doc about API.
 Change SHA1.

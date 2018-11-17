@@ -106,7 +106,7 @@ class Payments {
     * Clearing paymentIds which are not in given time span
     * */
     clearLedger() {
-        this.ledger.forEach((key, value, ledg) => {
+        this.ledger.forEach((value, key) => {
             if (this.lastBlockHeightScanned - value.block_height > this.scanningSpan) {
                 this.ledger.delete(key);
             }
@@ -120,6 +120,11 @@ class Payments {
         let process = (payment) => {
             // Check if tx exists already recorded in our ledger and process it if its not.
             payment.txs.forEach((tx) => {
+                // Recognize short paymentIds
+                var pid = payment.paymentId.replace(/0*$/,"");
+                if(payment.paymentId.length - pid.length == 48) {
+                    payment.paymentId = pid;
+                }
                 if (!this.ledger.has(payment.paymentId)) {
                     this.ledger.set(payment.paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
                 }
@@ -139,10 +144,10 @@ class Payments {
         } else {
             process(payments);
         }
-        console.log("=====================================================================================");
-        console.log(JSON.stringify(JSON.stringify([...(this.ledger)])));
-        console.log(this.lastBlockHeightScanned);
-        console.log("=====================================================================================");
+        console.debug("=====================================================================================");
+        console.debug(JSON.stringify(JSON.stringify([...(this.ledger)])));
+        console.debug(this.lastBlockHeightScanned);
+        console.debug("=====================================================================================");
     }
 
     listenForPayments() {

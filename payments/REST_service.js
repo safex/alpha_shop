@@ -26,38 +26,34 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-var express = require("express");
-var bodyParser = require('body-parser');
-const colors = require('colors');
-
-var router = express.Router();
-var cookieParser = require('cookie-parser');
-var errorHandler = require('errorhandler');
+let express = require("express");
+let bodyParser = require('body-parser');
+let colors = require('colors');
+let cookieParser = require('cookie-parser');
+let errorHandler = require('errorhandler');
 
 const https = require("https");
 const fs = require("fs");
 const helmet = require("helmet");
-
-const config = require('./config');
 
 const options = {
     key: fs.readFileSync("./certs/host1.key"),
     cert: fs.readFileSync("./certs/host1.cert")
 };
 
-const sfx_pay = require('./payments-util');
+const sfx_pay = require('./index');
 
 let sfxPayment = new sfx_pay.Payments();
 sfxPayment.listenForPayments();
 
 var app = express();
-app.use(helmet());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(errorHandler());
 
 const port = 3000;
 
+// Forming REST request.
 let form_rest_response = function(result) {
   return {
       error: false,
