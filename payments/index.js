@@ -57,15 +57,19 @@ class Payments {
         var returnVal = [];
         var processPaymentId = function(paymentId) {
             var total_sum = 0;
+            var block_height = 0;
             var tx_hashes = [];
             paymentId.txs.forEach((tx) => {
                 total_sum += tx.amount;
+                if(block_height < tx.block_height)
+                    block_height = tx.block_height;
                 tx_hashes.push(tx.tx_hash);
             });
 
             returnVal.push({
                 paymentId : paymentId.paymentId,
                 total_amount : total_sum,
+                block_height : block_height,
                 tx_hashes : tx_hashes
             });
         };
@@ -96,9 +100,7 @@ class Payments {
             if(this.ledger.has(paymentId)){
                 resolve(this.ledger.get(paymentId));
             }
-            else {
-                reject(false);
-            }
+            resolve({block_height: 0, total_amount: 0});
         });
     }
 
@@ -144,10 +146,6 @@ class Payments {
         } else {
             process(payments);
         }
-        console.debug("=====================================================================================");
-        console.debug(JSON.stringify(JSON.stringify([...(this.ledger)])));
-        console.debug(this.lastBlockHeightScanned);
-        console.debug("=====================================================================================");
     }
 
     listenForPayments() {
@@ -174,6 +172,11 @@ class Payments {
     * */
     async getIntegratedAddress(paymentId) {
         return this.sfxPayments.getIntegratedAddress(paymentId);
+    }
+
+    async splitIntegratedAddress(integratedAddress) {
+        return this.sfxPayments.splitIntegratedAddress(integratedAddress);
+
     }
 
     /*

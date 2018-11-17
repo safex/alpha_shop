@@ -104,6 +104,11 @@ class SafexPayments {
         return { integrated_address : results.result.integrated_address};
     }
 
+    async splitIntegratedAddress(integratedAddress) {
+        let results = await this.walletRPC.splitIntegratedAddress(integratedAddress);
+        return { paymentId: results.result.payment_id, address: results.result.standard_address};
+    }
+
     async getInfo() {
         let results = await this.nodeRpc.getInfo();
         return {
