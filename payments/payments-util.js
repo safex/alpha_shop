@@ -4,41 +4,21 @@
 // @todo introduce caching to DB using SQLite3
 
 
-let sfx_pay = require('./index');
+let sfx_pay = require('./sfx-payments');
 const config = require('./config.json');
-const db_query = require('./src/sqliteWrapper');
 
-// Summarize payment data to be more friendly to payments checking.
-async function summarizeByPamentId(payments) {
-    var returnVal = [];
-    var processPaymentId = function(paymentId) { var total_sum = 0;
-        var tx_hashes = [];
-        paymentId.txs.forEach((tx) => {
-            total_sum += tx.amount;
-            tx_hashes.push(tx.tx_hash);
-        });
+class Payments {
 
-        returnVal.push({
-            paymentId : paymentId.paymentId,
-            total_amount : total_sum,
-            txs : tx_hashes
-        });
-    };
-    if(payments instanceof Array) {
-        payments.forEach(processPaymentId(paymentId));
+    constructor() {
+        this.ledger = new Map;
+        this.lastBlockHeightScanned = 0;
+        this.scanningSpan = config.scanningSpan;
+        this.acceptancePeriod = config.acceptancePeriod;
+        this.sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
+        this.handlerListening = setInterval(this.listenForPayments.bind(this), config.listeningPeriod);
+        this.handlerClear = setInterval(this.clearLedger.bind(this), config.listeningPeriod * 5);
+
     }
-    else {
-        processPaymentId(payments);
-    }
-
-    return returnVal;
-}
-
-// Bunch of methods to keep some form ledger of actual payments and make SafexPaymentModule
-// active element instead of simple proxy.
-// Idea is to ping periodically wallet to see if there was any txs with targeted paymentIds.
-// update ledger and keep going, so external element can be freed of book keeping duties.git st
-
 // Saving next information
 //
 // paymentId -> {
@@ -47,74 +27,125 @@ async function summarizeByPamentId(payments) {
 //                  tx_hashes[]  => Tx hashes associated with paymentId.
 //              }
 //
-var ledger = new Map;
+    // Summarize payment data to be more friendly to payments checking.
+    async summarizeByPamentId(payments) {
+        var returnVal = [];
+        var processPaymentId = function(paymentId) {
+            var total_sum = 0;
+            var tx_hashes = [];
+            paymentId.txs.forEach((tx) => {
+                total_sum += tx.amount;
+                tx_hashes.push(tx.tx_hash);
+            });
 
-var lastBlockHeightScanned = 0;
-let sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
+            returnVal.push({
+                paymentId : paymentId.paymentId,
+                total_amount : total_sum,
+                tx_hashes : tx_hashes
+            });
+        };
 
-async function addPaymentId(paymentId) {
-    ledger.set(paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
-}
+        processPaymentId(payments);
 
-async function removePaymentId(paymentId) {
-
-        ledger.delete(paymentId);
-}
-
-async function isWatchingForPID(paymentId) {
-    if(paymentId instanceof string && (paymentId.length == 16 || paymentId.length == 64)) {
-        resolve(ledger.has(paymentId));
+        return returnVal;
     }
-    reject(false);
-}
 
-async function updateLedger(payments) {
-    let process = (payment) => {
-        // Check if tx exists already recorded in our ledger and process it if its not.
-        payment.txs.forEach((tx) => {
-            if(ledger.has(payment.paymentId) && !ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)){
-                ledger.get(payment.paymentId).total_amount += tx.amount;
-                ledger.get(payment.paymentId).tx_hashes.push(tx.tx_hash);
-                if(tx.block_height > ledger.get(payment.paymentId).block_height) {
-                    ledger.get(payment.paymentId).block_height = tx.block_height;
-                }
+    async getPaymentInfoWholeBC(paymentId) {
+        return new Promise((resolve, reject) => {
+            this.sfxPayments.getPaymentStatusOne(paymentId).then((vals) => {
+                resolve(this.summarizeByPamentId(vals));
+            }).catch((err)=> {
+               reject(err);
+            });
+        });
+    }
+
+    async getPaymentInfo(paymentId) {
+        return new Promise((resolve, reject) => {
+            if(this.ledger.has(paymentId)){
+                resolve(this.ledger.get(paymentId));
+            }
+            else {
+                reject(false);
             }
         });
-    };
-
-    if(payments instanceof Array){
-        payments.forEach(process);
     }
-    else {
-        process(payments);
+
+    clearLedger() {
+        this.ledger.forEach((key, value, ledg) => {
+            if (this.lastBlockHeightScanned - value.block_height > this.scanningSpan) {
+                this.ledger.delete(key);
+            }
+        });
     }
-}
 
-async function listenForPayments() {
-    // Get payment info from node
-    console.log("=====================================================================================");
-    console.log(JSON.stringify([...ledger]));
-    console.log(lastBlockHeightScanned);
-    console.log("=====================================================================================");
+    updateLedger(payments) {
+        let process = (payment) => {
+            // Check if tx exists already recorded in our ledger and process it if its not.
+            payment.txs.forEach((tx) => {
+                if (!this.ledger.has(payment.paymentId)) {
+                    this.ledger.set(payment.paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
+                }
 
-    sfxPayments.nodeRpc.getLastBlockHeight().then((height)=>{
-        height = height.result.count;
-        if(height > lastBlockHeightScanned) {
-            sfxPayments.getPaymentStatusBulk([...ledger.keys()], lastBlockHeightScanned)
-                .then((payments) => {
-                    updateLedger(payments);
-                });
-            lastBlockHeightScanned = height;
+                if (!this.ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)) {
+                    this.ledger.get(payment.paymentId).total_amount += tx.amount;
+                    this.ledger.get(payment.paymentId).tx_hashes.push(tx.tx_hash);
+                    if (tx.block_height > this.ledger.get(payment.paymentId).block_height) {
+                        this.ledger.get(payment.paymentId).block_height = tx.block_height;
+                    }
+                }
+            });
+        };
+
+        if (payments instanceof Array) {
+            payments.forEach(process);
+        } else {
+            process(payments);
         }
-    });
+        console.log("=====================================================================================");
+        console.log(JSON.stringify(JSON.stringify([...(this.ledger)])));
+        console.log(this.lastBlockHeightScanned);
+        console.log("=====================================================================================");
+    }
+
+    listenForPayments() {
+        // Get payment info from node
+
+        this.sfxPayments.nodeRpc.getLastBlockHeight().then((height) => {
+            height = height.result.count;
+            if (height > this.lastBlockHeightScanned) {
+                this.sfxPayments.getPaymentStatusBulk([], height-200)
+                    .then((payments) => {
+                        this.updateLedger(payments);
+
+                    });
+                this.lastBlockHeightScanned = height - this.scanningSpan;
+            }
 
 
+        });
+
+
+    }
+
+    async getIntegratedAddress(paymentId) {
+        return this.sfxPayments.getIntegratedAddress(paymentId);
+    }
+
+    async getAddress() {
+        return this.sfxPayments.getAddress();
+    }
+
+    async getHardForkInfo() {
+        return this.sfxPayments.getHardForkInfo();
+    }
+
+    async getInfo() {
+        return this.sfxPayments.getInfo();
+    }
+
+    async openWallet(file, pass) {
+        return this.sfxPayments.openWallet(file,pass);
+    }
 }
-
-module.exports = {
-    summarizeByPamentId : summarizeByPamentId,
-    addPaymentId : addPaymentId,
-    removePaymentId : removePaymentId,
-    isWatchingForPID : isWatchingForPID,
-    listenForPayments : listenForPayments
-};
+    module.exports.Payments = Payments;

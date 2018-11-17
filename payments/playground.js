@@ -21,20 +21,14 @@ var args = {
     'mnemonic': 'deftly large tirade gumball android leech sidekick opened iguana voice gels focus poaching itches network espionage much jailed vaults winter oatmeal eleven science siren winter'
 };
 
-var p1 = "a1b2c3d4e5f61235";
-var p2 = "a1b2c3d4e5f61236";
-var p3 = "a1b2c3d4e5f61237";
+var p1 = "a1b2c3d4e5e61235";
+var p2 = "a1b2c3d4e5e61236";
+var p3 = "a1b2c3d4e5e61237";
 
 console.log("Listening for payments.".yellow);
-utils.addPaymentId(p1);
-utils.addPaymentId(p2);
-utils.addPaymentId(p3);
-utils.listenForPayments();
 
-
-var listenHandle = setInterval(utils.listenForPayments, 120000);
-
-/*
+let payments = new utils.Payments();
+payments.listenForPayments();
 
 console.log("Creating wallet and txs".yellow);
 // Open wallet and create bunch of transactions to see whats happening
@@ -52,7 +46,7 @@ safex.openWallet(args).then((w) => {
             console.log("error on commiting transaction: " + e);
         });
     });
-    utils.addPaymentId(p1);
+
     setTimeout(() => {
         console.log("TX: 1".green);
         w.createTransaction({
@@ -101,7 +95,6 @@ safex.openWallet(args).then((w) => {
                 console.log("error on commiting transaction: " + e);
             });
         });
-        utils.addPaymentId(p2);
 
     },6 * minute);
 
@@ -119,7 +112,6 @@ safex.openWallet(args).then((w) => {
                 console.log("error on commiting transaction: " + e);
             });
         });
-        utils.removePaymentId(p1);
 
     },7 * minute);
 
@@ -138,7 +130,6 @@ safex.openWallet(args).then((w) => {
             });
         });
 
-        utils.addPaymentId(p3);
 
     },8 * minute);
 
@@ -161,4 +152,3 @@ safex.openWallet(args).then((w) => {
 
 });
 
-*/

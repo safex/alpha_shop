@@ -29,6 +29,7 @@
 var express = require("express");
 var bodyParser = require('body-parser')
 const colors = require('colors');
+
 var router = express.Router()
 var cookieParser = require('cookie-parser')
 var errorHandler = require('errorhandler')
@@ -44,9 +45,10 @@ const options = {
     cert: fs.readFileSync("./certs/host1.cert")
 };
 
-const sfx_pay = require('./index');
+const sfx_pay = require('./payments-util');
 
-let sfxPayment = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
+let sfxPayment = new sfx_pay.Payments();
+sfxPayment.listenForPayments();
 
 var app = express();
 app.use(helmet());
@@ -75,7 +77,7 @@ let form_rest_error = function(err) {
 
 app.post("/getpaymentinfo", function(req,res,next){
     if(req.body.paymentId) {
-        sfxPayment.getPaymentStatusOne(req.body.paymentId).then((result) => {
+        sfxPayment.getPaymentInfo(req.body.paymentId).then((result) => {
             res.json(form_rest_response(result));
         }).catch((e) => {
            res.json(form_rest_error(e));
@@ -90,8 +92,8 @@ app.post("/getpaymentinfo", function(req,res,next){
     }
 });
 
-app.post("/getpaymentsinfo", function(req,res,next){
-    if(req.body.paymentIds  && req.body.startBlockHeight) {
+app.post("/getpaymentinfowholebc", function(req,res,next){
+    if(req.body.paymentIds) {
         sfxPayment.getPaymentStatusBulk(req.body.paymentIds, req.body.startBlockHeight).then((result) => {
             res.json(form_rest_response(result));
         }).catch((e) => {

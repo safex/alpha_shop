@@ -1,4 +1,7 @@
 {
   "nodeRPCPort": 29393,
-  "walletRPCPort" : 10032
+  "walletRPCPort" : 10032,
+  "scanningSpan" :  40,
+  "acceptancePeriod" : 10,
+  "listeningPeriod" :  120000
 }
