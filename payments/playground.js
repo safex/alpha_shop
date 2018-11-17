@@ -21,9 +21,9 @@ var args = {
     'mnemonic': 'deftly large tirade gumball android leech sidekick opened iguana voice gels focus poaching itches network espionage much jailed vaults winter oatmeal eleven science siren winter'
 };
 
-var p1 = "a1b2c3d4e5e61235";
-var p2 = "a1b2c3d4e5e61236";
-var p3 = "a1b2c3d4e5e61237";
+var p1 = "a1b2c4d4e5e61235";
+var p2 = "a1b2c5d4e5e61236";
+var p3 = "a1b2c6d4e5e61237";
 
 console.log("Listening for payments.".yellow);
 

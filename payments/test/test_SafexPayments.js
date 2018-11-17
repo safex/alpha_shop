@@ -36,7 +36,7 @@ const config = require('../config.json');
 chai.use(chaiAsPromised);
 
 
-const sfx_pay = require('../sfx-payments');
+const sfx_pay = require('../src/sfx-payments');
 
 describe('SafexPayments', function(){
     describe('#getPaymentStatusOne()', function(){

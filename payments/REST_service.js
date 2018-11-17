@@ -27,12 +27,12 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 var express = require("express");
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 const colors = require('colors');
 
-var router = express.Router()
-var cookieParser = require('cookie-parser')
-var errorHandler = require('errorhandler')
+var router = express.Router();
+var cookieParser = require('cookie-parser');
+var errorHandler = require('errorhandler');
 
 const https = require("https");
 const fs = require("fs");
@@ -78,7 +78,11 @@ let form_rest_error = function(err) {
 app.post("/getpaymentinfo", function(req,res,next){
     if(req.body.paymentId) {
         sfxPayment.getPaymentInfo(req.body.paymentId).then((result) => {
-            res.json(form_rest_response(result));
+            res.json(form_rest_response({
+                paymentId : req.body.paymentId,
+                confirmations: sfxPayment.height - result.block_height,
+                totalAmount: result.total_amount
+            }));
         }).catch((e) => {
            res.json(form_rest_error(e));
         });
@@ -93,9 +97,13 @@ app.post("/getpaymentinfo", function(req,res,next){
 });
 
 app.post("/getpaymentinfowholebc", function(req,res,next){
-    if(req.body.paymentIds) {
-        sfxPayment.getPaymentStatusBulk(req.body.paymentIds, req.body.startBlockHeight).then((result) => {
-            res.json(form_rest_response(result));
+    if(req.body.paymentId) {
+        sfxPayment.getPaymentInfoWholeBC(req.body.paymentId).then((result) => {
+            res.json(form_rest_response({
+                paymentId : req.body.paymentId,
+                confirmations: sfxPayment.height - result.block_height,
+                totalAmount: result.total_amount
+            }));
         }).catch((e) => {
             res.json(form_rest_error(e));
         });

@@ -28,8 +28,8 @@
 
 const color = require('colors');
 const bigInt = require('big-integer');
-const walletRpc = require('./src/wallet-rpc').WalletRPC;
-const nodeRpc = require('./src/node-rpc').NodeRPC;
+const walletRpc = require('./wallet-rpc').WalletRPC;
+const nodeRpc = require('./node-rpc').NodeRPC;
 
 
 class SafexPayments {
