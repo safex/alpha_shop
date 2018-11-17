@@ -79,7 +79,7 @@ class Payments {
         });
     }
 
-    updateLedger(payments) {
+    updateLedger(payments, height) {
         let process = (payment) => {
             // Check if tx exists already recorded in our ledger and process it if its not.
             payment.txs.forEach((tx) => {
@@ -90,8 +90,8 @@ class Payments {
                 if (!this.ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)) {
                     this.ledger.get(payment.paymentId).total_amount += tx.amount;
                     this.ledger.get(payment.paymentId).tx_hashes.push(tx.tx_hash);
-                    if (tx.block_height > this.ledger.get(payment.paymentId).block_height) {
-                        this.ledger.get(payment.paymentId).block_height = tx.block_height;
+                    if ((height - tx.block_height) < (height - this.ledger.get(payment.paymentId).block_height)) {
+                        this.ledger.get(payment.paymentId).block_height = height - tx.block_height;
                     }
                 }
             });
@@ -116,7 +116,7 @@ class Payments {
             if (height > this.lastBlockHeightScanned) {
                 this.sfxPayments.getPaymentStatusBulk([], height-200)
                     .then((payments) => {
-                        this.updateLedger(payments);
+                        this.updateLedger(payments, height);
 
                     });
                 this.lastBlockHeightScanned = height - this.scanningSpan;
