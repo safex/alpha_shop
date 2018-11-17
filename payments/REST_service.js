@@ -37,8 +37,8 @@ const fs = require("fs");
 const helmet = require("helmet");
 
 const options = {
-    key: fs.readFileSync("./certs/host1.key"),
-    cert: fs.readFileSync("./certs/host1.cert")
+    key: fs.readFileSync("./certs/localhost.key"),
+    cert: fs.readFileSync("./certs/localhost.crt")
 };
 
 const sfx_pay = require('./index');
