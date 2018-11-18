@@ -31,11 +31,16 @@ REST Service has next exposed endpoints
 
 @IMPORTANT: Confirmations are calculated from last block which contains tx linked with given paymentId!!!
 
-POST - /getpaymentinfo
-Desc: Getting paymentinfo from internal book keeping of payment module. This is roughly around scanningSpan number of blocks.
+#### **POST** /getpaymentinfo
+
+Desc: *Getting paymentinfo from internal book keeping of payment module. This is roughly around scanningSpan number of blocks.*
+
 Req:
+```json
 { "paymentId" : "a1b2c5d4e5e61236" }
+```
 Res:
+```json
 {
     "error": false,
     "result": {
@@ -45,11 +50,19 @@ Res:
     },
     "timestamp": "2018-11-17T22:27:49.000Z"
 }
-POST - /getpaymentinfowholebc
-Desc: Getting payment info connected to paymentId scaning entire blockchain. Its intended for dispute solving and debugging.
+```
+
+#### **POST** /getpaymentinfowholebc
+
+Desc: *Getting payment info connected to paymentId scaning entire blockchain. Its intended for dispute solving and debugging.*
+
 Req:
-{ "paymentId" : "a1b2c5d4e5e61236" }
+
+```json{ "paymentId" : "a1b2c5d4e5e61236" }```
+
 Res:
+
+```json
 {
     "error": false,
     "result": {
@@ -59,11 +72,21 @@ Res:
     },
     "timestamp": "2018-11-17T22:33:05.506Z"
 }
-POST - /getintegratedaddress
-Desc: Get integrated address based on given paymentId
+```
+
+#### **POST** /getintegratedaddress
+
+Desc: *Get integrated address based on given paymentId*
+
 Req:
+
+```json
 { "paymentId" : "a1b2c5d4e5e61236" }
+```
+
 Res:
+
+```json
 {
     "error": false,
     "result": {
@@ -71,11 +94,22 @@ Res:
     },
     "timestamp": "2018-11-17T22:34:40.828Z"
 }
+```
 
-POST - /splitintegratedaddress
-Desc: For given integrated address returns paymentId and payment address.
-Req: { "integratedAddress" : "SFXti9o1apCRhgUEU4FVJjBkNS9sarNpbexP6YfZgDYv3bcSVwCZtm9PWnpkoRiifC3uMQJS9ihFmNTbUXr2eWgY7LUMiRvnD3RfTJin1xguGC"}
+#### **POST** /splitintegratedaddress
+
+Desc: *For given integrated address returns paymentId and payment address.*
+
+Req: 
+
+```json
+{ "integratedAddress" : "SFXti9o1apCRhgUEU4FVJjBkNS9sarNpbexP6YfZgDYv3bcSVwCZtm9PWnpkoRiifC3uMQJS9ihFmNTbUXr2eWgY7LUMiRvnD3RfTJin1xguGC"
+}
+```
+
 Res:
+
+```json
 {
     "error": false,
     "result": {
@@ -84,10 +118,16 @@ Res:
     },
     "timestamp": "2018-11-17T22:44:41.770Z"
 }
+```
 
-POST - /getpaymentaddress
-Req: {} //empty
+#### **POST** /getpaymentaddress
+
+Req: 
+```json {}  ```
+
 Res:
+
+```json
 {
     "error": false,
     "result": {
@@ -95,11 +135,20 @@ Res:
     },
     "timestamp": "2018-11-17T22:35:22.061Z"
 }
+```
 
-POST - /hardforkinfo
-Desc: Getting some relevant information regarding hard fork. For more info see https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#hard_fork_info
-Req: {} //empty
+
+#### **POST** /hardforkinfo
+
+Desc: *Getting some relevant information regarding hard fork. For more info see https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#hard_fork_info*
+
+Req: 
+
+```json {} ```
+
 Res:
+
+```json
 {
     "error": false,
     "result": {
@@ -110,11 +159,19 @@ Res:
     },
     "timestamp": "2018-11-17T22:37:14.282Z"
 }
+```
 
-POST - /nodeinfo
-Desc: Getting some relevant (filtered) information regarding node. https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#get_info
-Res: {} //empty
+#### **POST** /nodeinfo
+
+Desc: *Getting some relevant (filtered) information regarding node. https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#get_info*
+
+Res: 
+
+```json {} ```
+
 Req:
+
+```json
 {
     "error": false,
     "result": {
@@ -128,19 +185,33 @@ Req:
     },
     "timestamp": "2018-11-17T22:38:00.522Z"
 }
-POST - /openwallet
-Desc: Wallet file should be located in dir specified when starting walletRPC. Its intended for debugging purposes and for remote activating wallet file. Empty result means success.
-Req: { "filename" : "test.bin", "password" : "cicko" }
+```
+
+#### **POST** /openwallet
+
+Desc: *Wallet file should be located in dir specified when starting walletRPC. Its intended for debugging purposes and for remote activating wallet file. Empty result means success.*
+
+Req: 
+
+```json { "filename" : "test.bin", "password" : "cicko" }```
+
+
 Res:
+
+```json
 {
     "error": false,
     "result": {},
     "timestamp": "2018-11-17T22:51:37.838Z"
 }
+```
 
 Error example:
+
+```json
 {
     "error": true,
     "error_msg": "API Error: Failed to open wallet",
     "timestamp": "2018-11-17T22:56:34.735Z"
 }
+```
