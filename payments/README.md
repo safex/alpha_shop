@@ -29,7 +29,7 @@ Config json is main configuration file for SfxPaymentModule:
 Every REST Service response has error and timestamp field by default. If error field is set to false, there will be result field with targeted data. Otherwise it will be error_msg indicating what was error which happened.
 REST Service has next exposed endpoints
 
-@IMPORTANT: Confirmations are calculated from last block which contains tx linked with given paymentId!!!
+>@IMPORTANT: Confirmations are calculated from last block which contains tx linked with given paymentId!!!
 
 ### **POST** /getpaymentinfo
 
@@ -53,7 +53,7 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /getpaymentinfowholebc
+### **POST** /getpaymentinfowholebc
 
 ##### Description: 
 *Getting payment info connected to paymentId scaning entire blockchain. Its intended for dispute solving and debugging.*
@@ -76,7 +76,7 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /getintegratedaddress
+### **POST** /getintegratedaddress
 
 ##### Description: 
 *Get integrated address based on given paymentId*
@@ -99,7 +99,7 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /splitintegratedaddress
+### **POST** /splitintegratedaddress
 
 ##### Description: 
 *For given integrated address returns paymentId and payment address.*
@@ -124,7 +124,7 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /getpaymentaddress
+### **POST** /getpaymentaddress
 ##### Description: 
 
 ##### Request Data:
@@ -143,14 +143,16 @@ REST Service has next exposed endpoints
 ```
 
 
-#### **POST** /hardforkinfo
+### **POST** /hardforkinfo
 
 ##### Description: 
 *Getting some relevant information regarding hard fork. For more info see https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#hard_fork_info*
 
 ##### Request Data:
 
-```json {} ```
+```json 
+{} 
+```
 
 ##### Response:
 
@@ -167,14 +169,16 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /nodeinfo
+### **POST** /nodeinfo
 
 ##### Description: 
 *Getting some relevant (filtered) information regarding node. https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#get_info*
 
 ##### Request Data:
 
-```json {} ```
+```json 
+{} 
+```
 
 ##### Request Data:
 
@@ -194,14 +198,16 @@ REST Service has next exposed endpoints
 }
 ```
 
-#### **POST** /openwallet
+### **POST** /openwallet
 
 ##### Description: 
 *Wallet file should be located in dir specified when starting walletRPC. Its intended for debugging purposes and for remote activating wallet file. Empty result means success.*
 
 ##### Request Data: 
 
-```json { "filename" : "test.bin", "password" : "cicko" }```
+```json 
+{ "filename" : "test.bin", "password" : "cicko" }
+```
 
 
 ##### Response:
