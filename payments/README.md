@@ -20,11 +20,14 @@ Safex payments module can be used as REST service and/or nodeJS module.
 -   node REST_service.js
 
 Config json is main configuration file for SfxPaymentModule:
-  "nodeRPCPort" => RPC Port for local node.
-  "walletRPCPort" => RPC port for local safex-wallet-rpc
-  "scanningSpan" => Number of blocks to be scanned from the end of blockchain.
-  "listeningPeriod" => Time period on which scan is performed
-  "port" => Listening port of REST Service
+
+Field name   | Description
+------------ | -------------
+  nodeRPCPort | RPC Port for local node.
+  walletRPCPort | RPC port for local safex-wallet-rpc
+  scanningSpan | Number of blocks to be scanned from the end of blockchain.
+  listeningPeriod | Time period on which scan is performed
+  port | Listening port of REST Service
 
 Every REST Service response has error and timestamp field by default. If error field is set to false, there will be result field with targeted data. Otherwise it will be error_msg indicating what was error which happened.
 REST Service has next exposed endpoints
