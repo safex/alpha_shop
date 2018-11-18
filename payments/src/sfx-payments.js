@@ -127,6 +127,11 @@ class SafexPayments {
         return { payment_address : results.result.address};
     }
 
+    async getLastBlockHeight() {
+        let results = await this.nodeRpc.getLastBlockHeight();
+        return results.result.count;
+    }
+
     async getHardForkInfo() {
         let results = await this.nodeRpc.getHardForkInfo();
         return {

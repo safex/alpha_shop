@@ -151,8 +151,7 @@ class Payments {
     listenForPayments() {
         // Get payment info from node
 
-        this.sfxPayments.nodeRpc.getLastBlockHeight().then((height) => {
-            height = height.result.count;
+        this.sfxPayments.getLastBlockHeight().then((height) => {
             if (height > this.lastBlockHeightScanned) {
                 this.sfxPayments.getPaymentStatusBulk([], height - this.scanningSpan)
                     .then((payments) => {
