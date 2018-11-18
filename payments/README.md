@@ -31,15 +31,16 @@ REST Service has next exposed endpoints
 
 @IMPORTANT: Confirmations are calculated from last block which contains tx linked with given paymentId!!!
 
-#### **POST** /getpaymentinfo
+### **POST** /getpaymentinfo
 
-Desc: *Getting paymentinfo from internal book keeping of payment module. This is roughly around scanningSpan number of blocks.*
+##### Description: 
+*Getting paymentinfo from internal book keeping of payment module. This is roughly around scanningSpan number of blocks.*
 
-Req:
+##### Request Data:
 ```json
 { "paymentId" : "a1b2c5d4e5e61236" }
 ```
-Res:
+##### Response:
 ```json
 {
     "error": false,
@@ -54,13 +55,14 @@ Res:
 
 #### **POST** /getpaymentinfowholebc
 
-Desc: *Getting payment info connected to paymentId scaning entire blockchain. Its intended for dispute solving and debugging.*
+##### Description: 
+*Getting payment info connected to paymentId scaning entire blockchain. Its intended for dispute solving and debugging.*
 
-Req:
+##### Request Data:
 
 ```json{ "paymentId" : "a1b2c5d4e5e61236" }```
 
-Res:
+##### Response:
 
 ```json
 {
@@ -76,15 +78,16 @@ Res:
 
 #### **POST** /getintegratedaddress
 
-Desc: *Get integrated address based on given paymentId*
+##### Description: 
+*Get integrated address based on given paymentId*
 
-Req:
+##### Request Data:
 
 ```json
 { "paymentId" : "a1b2c5d4e5e61236" }
 ```
 
-Res:
+##### Response:
 
 ```json
 {
@@ -98,16 +101,17 @@ Res:
 
 #### **POST** /splitintegratedaddress
 
-Desc: *For given integrated address returns paymentId and payment address.*
+##### Description: 
+*For given integrated address returns paymentId and payment address.*
 
-Req: 
+##### Request Data:
 
 ```json
 { "integratedAddress" : "SFXti9o1apCRhgUEU4FVJjBkNS9sarNpbexP6YfZgDYv3bcSVwCZtm9PWnpkoRiifC3uMQJS9ihFmNTbUXr2eWgY7LUMiRvnD3RfTJin1xguGC"
 }
 ```
 
-Res:
+##### Response:
 
 ```json
 {
@@ -121,11 +125,12 @@ Res:
 ```
 
 #### **POST** /getpaymentaddress
+##### Description: 
 
-Req: 
+##### Request Data:
 ```json {}  ```
 
-Res:
+##### Response:
 
 ```json
 {
@@ -140,13 +145,14 @@ Res:
 
 #### **POST** /hardforkinfo
 
-Desc: *Getting some relevant information regarding hard fork. For more info see https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#hard_fork_info*
+##### Description: 
+*Getting some relevant information regarding hard fork. For more info see https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#hard_fork_info*
 
-Req: 
+##### Request Data:
 
 ```json {} ```
 
-Res:
+##### Response:
 
 ```json
 {
@@ -163,13 +169,14 @@ Res:
 
 #### **POST** /nodeinfo
 
-Desc: *Getting some relevant (filtered) information regarding node. https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#get_info*
+##### Description: 
+*Getting some relevant (filtered) information regarding node. https://www.getmonero.org/resources/developer-guides/daemon-rpc.html#get_info*
 
-Res: 
+##### Request Data:
 
 ```json {} ```
 
-Req:
+##### Request Data:
 
 ```json
 {
@@ -189,14 +196,15 @@ Req:
 
 #### **POST** /openwallet
 
-Desc: *Wallet file should be located in dir specified when starting walletRPC. Its intended for debugging purposes and for remote activating wallet file. Empty result means success.*
+##### Description: 
+*Wallet file should be located in dir specified when starting walletRPC. Its intended for debugging purposes and for remote activating wallet file. Empty result means success.*
 
-Req: 
+##### Request Data: 
 
 ```json { "filename" : "test.bin", "password" : "cicko" }```
 
 
-Res:
+##### Response:
 
 ```json
 {
@@ -206,7 +214,7 @@ Res:
 }
 ```
 
-Error example:
+### Error example:
 
 ```json
 {
