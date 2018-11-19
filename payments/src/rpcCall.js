@@ -40,11 +40,11 @@ async function executeMethod(rpcEndpoint, methodName, params) {
             params: params
         };
         if(debugRPCCall) {
-            console.log('====================== REQ ===================================='.yellow);
-            console.log('#DEBUG: Host: '.magenta + rpcEndpoint);
-            console.log('#DEBUG: Method: '.magenta + methodName);
-            console.log('#DEBUG: Request body: '.magenta + JSON.stringify(json_data));
-            console.log('==============================================================='.yellow);
+            console.debug('====================== REQ ===================================='.yellow);
+            console.debug('#DEBUG: Host: '.magenta + rpcEndpoint);
+            console.debug('#DEBUG: Method: '.magenta + methodName);
+            console.debug('#DEBUG: Request body: '.magenta + JSON.stringify(json_data));
+            console.debug('==============================================================='.yellow);
         }
         request.post(rpcEndpoint, {json: json_data}, (error, res, body) => {
             if (error) {
@@ -57,10 +57,10 @@ async function executeMethod(rpcEndpoint, methodName, params) {
 
             if (body.error) {
                 if(debugRPCCall) {
-                    console.log('====================== REQ ERR ================================'.red);
-                    console.log('#DEBUG: Method: '.yellow + methodName);
-                    console.log('#DEBUG: '.yellow + JSON.stringify(body));
-                    console.log('==============================================================='.red);
+                    console.debug('====================== REQ ERR ================================'.red);
+                    console.debug('#DEBUG: Method: '.yellow + methodName);
+                    console.debug('#DEBUG: '.yellow + JSON.stringify(body));
+                    console.debug('==============================================================='.red);
                 }
                 reject('API Error: '+ body.error.message);
                 return;

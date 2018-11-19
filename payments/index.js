@@ -26,117 +26,184 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-const color = require('colors');
-const bigInt = require('big-integer');
-const walletRpc = require('./src/wallet-rpc').WalletRPC;
-const nodeRpc = require('./src/node-rpc').NodeRPC;
+let sfx_pay = require('./src/sfx-payments');
+const config = require('./config.json');
 
+// Final layer of payments module.
+class Payments {
 
-class SafexPayments {
-    constructor(walletRPCPort, nodeRPCPort) {
-        this.walletRPC = new walletRpc(walletRPCPort);
-        this.nodeRpc = new nodeRpc(nodeRPCPort);
+    constructor() {
+        this.ledger = new Map;
+        this.lastBlockHeightScanned = 0;
+        this.scanningSpan = config.scanningSpan;
+        this.sfxPayments = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
+        this.bcHeight = 0;
+
+        // Leaving as data field for possible future use.
+        this.handlerListening = setInterval(this.listenForPayments.bind(this), config.listeningPeriod);
+        this.handlerClear = setInterval(this.clearLedger.bind(this), config.listeningPeriod * 5);
+
     }
-
-    /**
-     * Returning TX statuses for given paymentId. Returned values are from the beginning of blockchain.
-     * @param paymentId
-     * @returns {Promise<Array({
-     *     amount : Amount in SafexCash in base currency 10^-10
-     *     block_height : Block height where transaction is located
-     *     tx_hash : Transaction hash
-     *     unlock_time : Unlock time.
-     *     })
-     * }
-     */
-    async getPaymentStatusOne(paymentId) {
-        let results = await this.walletRPC.checkForPayment(paymentId);
-        // PostProcessing
-
-        var returnVals = [];
-
-        if(results.result.payments){
-            // Refer test/test_data/getPaymentMultiple.json to see how input looks like for multiple tx for same
-            //  paymentId.
-            results.result.payments.forEach((input) => {
-                returnVals.push({
-                    amount : input.amount,
-                    block_height : input.block_height,
-                    tx_hash : input.tx_hash,
-                    unlock_time: input.unlock_time
-                });
+// Saving next information
+//
+// paymentId -> {
+//                  total_amount => Total amount recorded for paymentId
+//                  block_height => Highest block with tx recorded
+//                  tx_hashes[]  => Tx hashes associated with paymentId.
+//              }
+//
+    // Summarize payment data to be more friendly to payments checking.
+    async summarizeByPamentId(payments) {
+        var returnVal = [];
+        var processPaymentId = function(paymentId) {
+            var total_sum = 0;
+            var block_height = 0;
+            var tx_hashes = [];
+            paymentId.txs.forEach((tx) => {
+                total_sum += tx.amount;
+                if(block_height < tx.block_height)
+                    block_height = tx.block_height;
+                tx_hashes.push(tx.tx_hash);
             });
-        }
 
-        return {paymentId: paymentId, txs: returnVals};
+            returnVal.push({
+                paymentId : paymentId.paymentId,
+                total_amount : total_sum,
+                block_height : block_height,
+                tx_hashes : tx_hashes
+            });
+        };
+
+        processPaymentId(payments);
+
+        return returnVal;
     }
 
-    async getPaymentStatusBulk(paymentIds, start_block_height) {
-        let results = await this.walletRPC.checkForPayments(paymentIds, start_block_height);
+    /*
+    * Getting info for given paymentId for whole bc
+    * */
+    async getPaymentInfoWholeBC(paymentId) {
+        return new Promise((resolve, reject) => {
+            this.sfxPayments.getPaymentStatusOne(paymentId).then((vals) => {
+                resolve(this.summarizeByPamentId(vals));
+            }).catch((err)=> {
+               reject(err);
+            });
+        });
+    }
 
-        // PostProcessing
-        var returnVals = new Object();
+    /*
+    * Getting paymentId from intern ledger for book keeping of txs.
+    *  */
+    async getPaymentInfo(paymentId) {
+        return new Promise((resolve, reject) => {
+            if(this.ledger.has(paymentId)){
+                resolve(this.ledger.get(paymentId));
+            }
+            resolve({block_height: 0, total_amount: 0});
+        });
+    }
 
-        if(results.result.payments){
-            // Refer test/test_data/getPaymentMultiple.json to see how input looks like for multiple tx for same
-            //  paymentId.
-            results.result.payments.forEach((input) => {
-                if(! returnVals.hasOwnProperty(input.payment_id)) {
-                    returnVals[input.payment_id] = {
-                        paymentId: input.payment_id,
-                        txs: []
-                    };
+    /*
+    * Clearing paymentIds which are not in given time span
+    * */
+    clearLedger() {
+        this.ledger.forEach((value, key) => {
+            if (this.lastBlockHeightScanned - value.block_height > this.scanningSpan) {
+                this.ledger.delete(key);
+            }
+        });
+    }
+
+    /*
+    * Function for updating inner ledger from batch of paymentIds from wallet.
+    *  */
+    updateLedger(payments) {
+        let process = (payment) => {
+            // Check if tx exists already recorded in our ledger and process it if its not.
+            payment.txs.forEach((tx) => {
+                // Recognize short paymentIds
+                var pid = payment.paymentId.replace(/0*$/,"");
+                if(payment.paymentId.length - pid.length == 48) {
+                    payment.paymentId = pid;
                 }
-                returnVals[input.payment_id].txs.push({
-                    amount : input.amount,
-                    block_height : input.block_height,
-                    tx_hash : input.tx_hash,
-                    unlock_time: input.unlock_time
-                });
+                if (!this.ledger.has(payment.paymentId)) {
+                    this.ledger.set(payment.paymentId, {total_amount: 0, block_height: 0, tx_hashes: []});
+                }
+
+                if (!this.ledger.get(payment.paymentId).tx_hashes.includes(tx.tx_hash)) {
+                    this.ledger.get(payment.paymentId).total_amount += tx.amount;
+                    this.ledger.get(payment.paymentId).tx_hashes.push(tx.tx_hash);
+                    if (tx.block_height > this.ledger.get(payment.paymentId).block_height) {
+                        this.ledger.get(payment.paymentId).block_height = tx.block_height;
+                    }
+                }
             });
+        };
+
+        if (payments instanceof Array) {
+            payments.forEach(process);
+        } else {
+            process(payments);
         }
-
-        return Object.values(returnVals);
     }
 
+    listenForPayments() {
+        // Get payment info from node
+
+        this.sfxPayments.getLastBlockHeight().then((height) => {
+            if (height > this.lastBlockHeightScanned) {
+                this.sfxPayments.getPaymentStatusBulk([], height - this.scanningSpan)
+                    .then((payments) => {
+                        this.updateLedger(payments, height);
+
+                    });
+                this.bcHeight = height;
+                this.lastBlockHeightScanned = height - this.scanningSpan;
+            }
+
+
+        });
+    }
+
+    /*
+    * Get integrated address based on given paymentId
+    * */
     async getIntegratedAddress(paymentId) {
-        let results = await this.walletRPC.makeIntegratedAddress(paymentId);
-        return { integrated_address : results.result.integrated_address};
+        return this.sfxPayments.getIntegratedAddress(paymentId);
     }
 
-    async getInfo() {
-        let results = await this.nodeRpc.getInfo();
-        return {
-            height: results.result.height,
-            free_space: results.result.free_space,
-            mainnet: results.result.mainnet,
-            stagenet: results.result.stagenet,
-            testnet: results.result.testnet,
-            status: results.result.status,
-            start_time: results.result.start_time
-        };
+    async splitIntegratedAddress(integratedAddress) {
+        return this.sfxPayments.splitIntegratedAddress(integratedAddress);
+
     }
 
+    /*
+    * Get address of connected wallet
+    * */
     async getAddress() {
-        let results = await this.walletRPC.getAddress();
-        return { payment_address : results.result.address};
+        return this.sfxPayments.getAddress();
     }
 
+    /*
+    * Get hardfork info from node.
+    * */
     async getHardForkInfo() {
-        let results = await this.nodeRpc.getHardForkInfo();
-        return {
-          enabled : results.result.enabled,
-          state : results.result.state,
-          status : results.result.status,
-          version : results.result.version
-        };
+        return this.sfxPayments.getHardForkInfo();
     }
 
-    async openWallet(filepath, password) {
-        let results = await this.walletRPC.open(filepath, password);
-        return results.result;
-    };
+    /*
+    * Blockchain info from connected node.
+    * */
+    async getInfo() {
+        return this.sfxPayments.getInfo();
+    }
 
+    /*
+    * Opening wallet
+    * */
+    async openWallet(file, pass) {
+        return this.sfxPayments.openWallet(file,pass);
+    }
 }
-
-module.exports.SafexPayments = SafexPayments;
+    module.exports.Payments = Payments;
