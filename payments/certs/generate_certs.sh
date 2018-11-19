@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Sample script to create cert/key pair for SSL/TLS communication.
+# Sample script to create cert/key pair for SSL-TLS
 
-openssl genrsa 1024 > host.key
-chmod 400 host.key
-openssl req -new -x509 -nodes -sha1 -days 365 -key host.key -out host.cert
+# Creating key.pem cert.pem 
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365
+
+# Client keys
+openssl req -x509 -newkey rsa:2048 -keyout client-key.pem -out client-cert.pem -days 365
