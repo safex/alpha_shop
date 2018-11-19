@@ -26,18 +26,15 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-var express = require("express");
-var bodyParser = require('body-parser')
-const colors = require('colors');
-var router = express.Router()
-var cookieParser = require('cookie-parser')
-var errorHandler = require('errorhandler')
+let express = require("express");
+let bodyParser = require('body-parser');
+let colors = require('colors');
+let cookieParser = require('cookie-parser');
+let errorHandler = require('errorhandler');
 
 const https = require("https");
 const fs = require("fs");
 const helmet = require("helmet");
-
-const config = require('./config');
 
 const options = {
     key: fs.readFileSync("./certs/key.pem"),
@@ -48,20 +45,22 @@ const options = {
     rejectUnauthorized: true,
 
     ca : [fs.readFileSync('./certs/client-cert.pem')]
+
 };
 
 const sfx_pay = require('./index');
 
-let sfxPayment = new sfx_pay.SafexPayments(config.walletRPCPort, config.nodeRPCPort);
+let sfxPayment = new sfx_pay.Payments();
+sfxPayment.listenForPayments();
 
 var app = express();
-app.use(helmet());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(errorHandler());
 
 const port = 3000;
 
+// Forming REST request.
 let form_rest_response = function(result) {
   return {
       error: false,
@@ -81,8 +80,12 @@ let form_rest_error = function(err) {
 
 app.post("/getpaymentinfo", function(req,res,next){
     if(req.body.paymentId) {
-        sfxPayment.getPaymentStatusOne(req.body.paymentId).then((result) => {
-            res.json(form_rest_response(result));
+        sfxPayment.getPaymentInfo(req.body.paymentId).then((result) => {
+            res.json(form_rest_response({
+                paymentId : req.body.paymentId,
+                confirmations: sfxPayment.bcHeight - result.block_height,
+                totalAmount: result.total_amount
+            }));
         }).catch((e) => {
            res.json(form_rest_error(e));
         });
@@ -96,10 +99,14 @@ app.post("/getpaymentinfo", function(req,res,next){
     }
 });
 
-app.post("/getpaymentsinfo", function(req,res,next){
-    if(req.body.paymentIds  && req.body.startBlockHeight) {
-        sfxPayment.getPaymentStatusBulk(req.body.paymentIds, req.body.startBlockHeight).then((result) => {
-            res.json(form_rest_response(result));
+app.post("/getpaymentinfowholebc", function(req,res,next){
+    if(req.body.paymentId) {
+        sfxPayment.getPaymentInfoWholeBC(req.body.paymentId).then((result) => {
+            res.json(form_rest_response({
+                paymentId : req.body.paymentId,
+                confirmations: sfxPayment.bcHeight - result[0].block_height,
+                totalAmount: result[0].total_amount
+            }));
         }).catch((e) => {
             res.json(form_rest_error(e));
         });
@@ -116,7 +123,24 @@ app.post("/getpaymentsinfo", function(req,res,next){
 app.post("/getintegratedaddress", function(req,res,next){
     if(req.body.paymentId) {
         sfxPayment.getIntegratedAddress(req.body.paymentId).then((result) => {
-            res.json(form_rest_response({ integrated_address: result}));
+            res.json(form_rest_response(result));
+        }).catch((e) => {
+            res.json(form_rest_error(e));
+        });
+    }
+    else {
+        res.json({
+            error : true,
+            error_msg: 'Invalid request!',
+            timestamp: new Date()
+        })
+    }
+});
+
+app.post("/splitintegratedaddress", function(req,res,next){
+    if(req.body.integratedAddress) {
+        sfxPayment.splitIntegratedAddress(req.body.integratedAddress).then((result) => {
+            res.json(form_rest_response(result));
         }).catch((e) => {
             res.json(form_rest_error(e));
         });
@@ -142,7 +166,7 @@ app.post("/getpaymentaddress", function(req, res, next){
 
 app.post("/hardforkinfo", function(req, res, next){
     sfxPayment.getHardForkInfo().then((result) => {
-        res.json(form_rest_response({ integrated_address: result}));
+        res.json(form_rest_response(result));
     }).catch((e) => {
         res.json(form_rest_error(e));
     });
@@ -150,7 +174,7 @@ app.post("/hardforkinfo", function(req, res, next){
 
 app.post("/nodeinfo", function(req, res, next){
     sfxPayment.getInfo().then((result) => {
-        res.json(form_rest_response({ integrated_address: result}));
+        res.json(form_rest_response(result));
     }).catch((e) => {
         res.json(form_rest_error(e));
     });
@@ -178,4 +202,5 @@ app.use(function(req, res){
     res.json({ error: true, error_msg : 'Not found', timestamp: new Date() });
 });
 
+app.listen(port);
 https.createServer(options, app).listen(port+1);
